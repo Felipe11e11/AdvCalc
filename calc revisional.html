@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador de Juros Abusivos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 16px;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+        }
+
+        /* Container principal */
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Título e subtítulo */
+        h1 {
+            text-align: center;
+            color: #222;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        /* Grupos de formulário */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 500;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease-in-out;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        input[type="number"]:valid {
+            border-color: #28a745; /* Verde para campos preenchidos corretamente */
+        }
+
+        /* Botões */
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.02); /* Efeito de escala ao passar o mouse */
+        }
+
+        button i {
+            margin-left: 8px;
+        }
+
+        /* Resultado */
+        #result {
+            margin-top: 25px;
+            text-align: center;
+            font-weight: 600;
+            line-height: 1.6;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .result.abusivo {
+            color: #d9534f; /* Vermelho para taxa abusiva */
+        }
+
+        .result.normal {
+            color: #28a745; /* Verde para taxa normal */
+        }
+
+        /* Mensagem de erro */
+        .error {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        /* Barra de rolagem */
+        body::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Estilo para parágrafos no resultado */
+        #result p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Verificador de Juros Abusivos</h1>
+        <p class="subtitle">Insira os dados abaixo para verificar se a taxa de juros é abusiva.</p>
+
+        <!-- Formulário -->
+        <div class="form-group">
+            <label for="mesContrato">Mês do Contrato:</label>
+            <select id="mesContrato" required>
+                <option value="">Selecione o mês</option>
+                <option value="jan">Janeiro</option>
+                <option value="fev">Fevereiro</option>
+                <option value="mar">Março</option>
+                <option value="abr">Abril</option>
+                <option value="mai">Maio</option>
+                <option value="jun">Junho</option>
+                <option value="jul">Julho</option>
+                <option value="ago">Agosto</option>
+                <option value="set">Setembro</option>
+                <option value="out">Outubro</option>
+                <option value="nov">Novembro</option>
+                <option value="dez">Dezembro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="anoContrato">Ano do Contrato:</label>
+            <input type="number" id="anoContrato" placeholder="Ex: 2023" required>
+        </div>
+
+        <div class="form-group">
+            <label for="modalidade">Modalidade de Crédito:</label>
+            <select id="modalidade" required>
+                <option value="">Selecione uma modalidade</option>
+                <option value="25464">Crédito pessoal não consignado</option>
+                <option value="25465">Crédito pessoal não consignado vinculado à composição de dívidas</option>
+                <option value="25467">Crédito pessoal consignado para trabalhadores do setor público</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="taxaJurosMensal">Taxa de Juros Mensal (%):</label>
+            <input type="number" id="taxaJurosMensal" step="0.01" placeholder="Ex: 5.5" required>
+        </div>
+
+        <div class="form-group">
+            <label for="valorPrincipal">Valor Principal (R$):</label>
+            <input type="number" id="valorPrincipal" step="0.01" placeholder="Ex: 1000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prazoMeses">Prazo (meses):</label>
+            <input type="number" id="prazoMeses" step="1" placeholder="Ex: 12" required>
+        </div>
+
+        <div class="form-group">
+            <label for="valorParcela">Valor da Parcela Atual (R$):</label>
+            <input type="number" id="valorParcela" step="0.01" placeholder="Ex: 150" required>
+        </div>
+
+        <!-- Botões -->
+        <button onclick="verificarJuros()">Verificar <i class="fas fa-search"></i></button>
+        <button type="button" onclick="resetForm()" style="margin-top: 10px;">Limpar <i class="fas fa-trash"></i></button>
+        <button onclick="copiarResultado()" style="margin-top: 10px;">Copiar Resultado <i class="fas fa-copy"></i></button>
+
+        <!-- Resultado -->
+        <div id="result" class="result" aria-live="polite"></div>
+    </div>
+
+    <script>
+        // Dados das taxas médias de mercado
+        const taxasMercado = {
+            "25464": {
+                "mar/11": 4.72, "abr/11": 4.86, "mai/11": 4.89, "jun/11": 4.9, "jul/11": 5.03, "ago/11": 4.96,
+                "set/11": 4.96, "out/11": 5.06, "nov/11": 4.84, "dez/11": 4.67, "jan/12": 5.03, "fev/12": 5.09,
+                "mar/12": 4.89, "abr/12": 4.63, "mai/12": 4.4, "jun/12": 4.34, "jul/12": 4.46, "ago/12": 4.43,
+                "set/12": 4.36, "out/12": 4.41, "nov/12": 4.33, "dez/12": 4.34, "jan/13": 4.43, "fev/13": 4.52,
+                "mar/13": 4.42, "abr/13": 4.41, "mai/13": 4.42, "jun/13": 4.66, "jul/13": 4.98, "ago/13": 4.98,
+                "set/13": 5.11, "out/13": 5.39, "nov/13": 5.32, "dez/13": 5.31, "jan/14": 5.55, "fev/14": 5.73,
+                "mar/14": 5.68, "abr/14": 5.91, "mai/14": 5.83, "jun/14": 5.95, "jul/14": 6, "ago/14": 5.95,
+                "set/14": 5.78, "out/14": 6.1, "nov/14": 6.1, "dez/14": 6.03, "jan/15": 6.27, "fev/15": 6.3,
+                "mar/15": 6.15, "abr/15": 6.51, "mai/15": 6.46, "jun/15": 6.49, "jul/15": 6.62, "ago/15": 6.79,
+                "set/15": 6.72, "out/15": 7.16, "nov/15": 6.81, "dez/15": 6.7, "jan/16": 6.73, "fev/16": 6.91,
+                "mar/16": 7.04, "abr/16": 7.21, "mai/16": 7.18, "jun/16": 7.12, "jul/16": 7.27, "ago/16": 7.27,
+                "set/16": 7.38, "out/16": 7.42, "nov/16": 7.49, "dez/16": 7.56, "jan/17": 7.6, "fev/17": 7.64,
+                "mar/17": 7.38, "abr/17": 7.15, "mai/17": 7.29, "jun/17": 6.99, "jul/17": 7.31, "ago/17": 7.2,
+                "set/17": 7.08, "out/17": 7.27, "nov/17": 7.03, "dez/17": 6.52, "jan/18": 6.89, "fev/18": 7.02,
+                "mar/18": 6.99, "abr/18": 6.99, "mai/18": 6.58, "jun/18": 6.58, "jul/18": 6.74, "ago/18": 6.85,
+                "set/18": 6.88, "out/18": 7.04, "nov/18": 6.91, "dez/18": 6.27, "jan/19": 6.64, "fev/19": 6.89,
+                "mar/19": 6.94, "abr/19": 7.07, "mai/19": 6.79, "jun/19": 6.8, "jul/19": 6.76, "ago/19": 6.65,
+                "set/19": 6.5, "out/19": 5.88, "nov/19": 6.05, "dez/19": 5.7, "jan/20": 6.1, "fev/20": 6.23,
+                "mar/20": 5.71, "abr/20": 5.32, "mai/20": 5.33, "jun/20": 5.26, "jul/20": 5.13, "ago/20": 4.54,
+                "set/20": 4.5, "out/20": 4.88, "nov/20": 5.03, "dez/20": 4.69, "jan/21": 5.25, "fev/21": 5.23,
+                "mar/21": 5.27, "abr/21": 5.32, "mai/21": 5.05, "jun/21": 5.01, "jul/21": 4.87, "ago/21": 5.01,
+                "set/21": 4.89, "out/21": 5.19, "nov/21": 5.23, "dez/21": 5.27, "jan/22": 5.01, "fev/22": 5.18,
+                "mar/22": 5.4, "abr/22": 5.22, "mai/22": 5.32, "jun/22": 5.37, "jul/22": 5.33, "ago/22": 5.27,
+                "set/22": 5.1, "out/22": 5.19, "nov/22": 5.32, "dez/22": 5.11, "jan/23": 5.22, "fev/23": 5.34,
+                "mar/23": 5.4, "abr/23": 5.61, "mai/23": 5.56, "jun/23": 5.55, "jul/23": 5.61, "ago/23": 5.61,
+                "set/23": 5.55, "out/23": 5.47, "nov/23": 5.67, "dez/23": 5.68, "jan/24": 5.5, "fev/24": 5.58,
+                "mar/24": 5.78, "abr/24": 5.76, "mai/24": 5.75, "jun/24": 5.74, "jul/24": 5.91, "ago/24": 5.74,
+                "set/24": 5.69, "out/24": 5.82
+            },
+            "25465": {
+                "mar/11": 4.11, "abr/11": 4.26, "mai/11": 4.27, "jun/11": 4.08, "jul/11": 4.16, "ago/11": 4.07,
+                "set/11": 3.92, "out/11": 3.75, "nov/11": 3.63, "dez/11": 3.47, "jan/12": 3.59, "fev/12": 3.75,
+                "mar/12": 3.42, "abr/12": 3.43, "mai/12": 3.1, "jun/12": 2.85, "jul/12": 2.89, "ago/12": 2.91,
+                "set/12": 2.9, "out/12": 2.95, "nov/12": 2.73, "dez/12": 2.64, "jan/13": 2.8, "fev/13": 2.86,
+                "mar/13": 2.84, "abr/13": 2.81, "mai/13": 2.58, "jun/13": 2.64, "jul/13": 2.81, "ago/13": 2.7,
+                "set/13": 2.66, "out/13": 2.81, "nov/13": 2.73, "dez/13": 2.58, "jan/14": 2.82, "fev/14": 2.81,
+                "mar/14": 2.84, "abr/14": 2.75, "mai/14": 2.8, "jun/14": 2.82, "jul/14": 2.72, "ago/14": 2.72,
+                "set/14": 2.72, "out/14": 2.69, "nov/14": 2.57, "dez/14": 2.56, "jan/15": 3.11, "fev/15": 3.13,
+                "mar/15": 3.12, "abr/15": 3.14, "mai/15": 3.21, "jun/15": 3.23, "jul/15": 3.19, "ago/15": 3.14,
+                "set/15": 3.18, "out/15": 3.46, "nov/15": 3.42, "dez/15": 3.22, "jan/16": 3.27, "fev/16": 3.55,
+                "mar/16": 3.59, "abr/16": 3.7, "mai/16": 3.77, "jun/16": 3.77, "jul/16": 3.72, "ago/16": 3.62,
+                "set/16": 3.71, "out/16": 3.81, "nov/16": 3.73, "dez/16": 3.67, "jan/17": 3.84, "fev/17": 3.86,
+                "mar/17": 3.82, "abr/17": 3.85, "mai/17": 4.05, "jun/17": 4.05, "jul/17": 4.1, "ago/17": 4.11,
+                "set/17": 4.1, "out/17": 4.05, "nov/17": 3.93, "dez/17": 3.95, "jan/18": 4.08, "fev/18": 4.17,
+                "mar/18": 4.15, "abr/18": 4.14, "mai/18": 4.12, "jun/18": 3.91, "jul/18": 4, "ago/18": 3.95,
+                "set/18": 3.91, "out/18": 3.89, "nov/18": 3.78, "dez/18": 3.77, "jan/19": 3.95, "fev/19": 3.96,
+                "mar/19": 3.97, "abr/19": 4.07, "mai/19": 3.9, "jun/19": 3.82, "jul/19": 3.72, "ago/19": 3.62,
+                "set/19": 3.45, "out/19": 3.48, "nov/19": 3.34, "dez/19": 3.32, "jan/20": 3.46, "fev/20": 3.35,
+                "mar/20": 3.12, "abr/20": 2.86, "mai/20": 2.83, "jun/20": 2.78, "jul/20": 3.06, "ago/20": 3.42,
+                "set/20": 3.33, "out/20": 3.41, "nov/20": 2.77, "dez/20": 2.87, "jan/21": 3.06, "fev/21": 3.46,
+                "mar/21": 3.47, "abr/21": 3.41, "mai/21": 3.26, "jun/21": 3.37, "jul/21": 3.32, "ago/21": 3.34,
+                "set/21": 3.37, "out/21": 3.48, "nov/21": 3.52, "dez/21": 3.49, "jan/22": 3.74, "fev/22": 3.6,
+                "mar/22": 3.46, "abr/22": 3.37, "mai/22": 3.38, "jun/22": 3.4, "jul/22": 3.45, "ago/22": 3.37,
+                "set/22": 3.11, "out/22": 3.17, "nov/22": 2.9, "dez/22": 2.71, "jan/23": 2.96, "fev/23": 2.91,
+                "mar/23": 2.86, "abr/23": 2.91, "mai/23": 2.9, "jun/23": 2.8, "jul/23": 2.81, "ago/23": 2.7,
+                "set/23": 2.61, "out/23": 2.7, "nov/23": 2.62, "dez/23": 2.67, "jan/24": 2.88, "fev/24": 2.95,
+                "mar/24": 2.89, "abr/24": 2.84, "mai/24": 2.87, "jun/24": 2.93, "jul/24": 2.92, "ago/24": 2.87,
+                "set/24": 2.91, "out/24": 3.01
+            },
+            "25467": {
+                "mar/11": 2.02, "abr/11": 2.07, "mai/11": 2.06, "jun/11": 2.02, "jul/11": 1.99, "ago/11": 1.99,
+                "set/11": 2, "out/11": 2, "nov/11": 1.97, "dez/11": 1.96, "jan/12": 1.97, "fev/12": 1.97,
+                "mar/12": 1.97, "abr/12": 1.91, "mai/12": 1.86, "jun/12": 1.82, "jul/12": 1.79, "ago/12": 1.75,
+                "set/12": 1.76, "out/12": 1.74, "nov/12": 1.73, "dez/12": 1.71, "jan/13": 1.7, "fev/13": 1.73,
+                "mar/13": 1.73, "abr/13": 1.71, "mai/13": 1.69, "jun/13": 1.7, "jul/13": 1.7, "ago/13": 1.71,
+                "set/13": 1.68, "out/13": 1.7, "nov/13": 1.7, "dez/13": 1.69, "jan/14": 1.72, "fev/14": 1.74,
+                "mar/14": 1.76, "abr/14": 1.76, "mai/14": 1.78, "jun/14": 1.78, "jul/14": 1.81, "ago/14": 1.81,
+                "set/14": 1.82, "out/14": 1.77, "nov/14": 1.8, "dez/14": 1.81, "jan/15": 1.84, "fev/15": 1.86,
+                "mar/15": 1.87, "abr/15": 1.89, "mai/15": 1.92, "jun/15": 1.93, "jul/15": 1.97, "ago/15": 1.96,
+                "set/15": 1.94, "out/15": 1.98, "nov/15": 1.97, "dez/15": 1.98, "jan/16": 2, "fev/16": 2.03,
+                "mar/16": 2.06, "abr/16": 2.06, "mai/16": 2.06, "jun/16": 2.05, "jul/16": 2.04, "ago/16": 2.04,
+                "set/16": 2.04, "out/16": 2.05, "nov/16": 2.05, "dez/16": 2.05, "jan/17": 2.05, "fev/17": 2.04,
+                "mar/17": 2.03, "abr/17": 1.99, "mai/17": 1.95, "jun/17": 1.93, "jul/17": 1.93, "ago/17": 1.92,
+                "set/17": 1.9, "out/17": 1.87, "nov/17": 1.84, "dez/17": 1.82, "jan/18": 1.83, "fev/18": 1.84,
+                "mar/18": 1.83, "abr/18": 1.8, "mai/18": 1.79, "jun/18": 1.76, "jul/18": 1.76, "ago/18": 1.72,
+                "set/18": 1.72, "out/18": 1.71, "nov/18": 1.72, "dez/18": 1.7, "jan/19": 1.69, "fev/19": 1.68,
+                "mar/19": 1.64, "abr/19": 1.63, "mai/19": 1.63, "jun/19": 1.6, "jul/19": 1.59, "ago/19": 1.57,
+                "set/19": 1.48, "out/19": 1.45, "nov/19": 1.42, "dez/19": 1.4, "jan/20": 1.45, "fev/20": 1.44,
+                "mar/20": 1.45, "abr/20": 1.41, "mai/20": 1.4, "jun/20": 1.37, "jul/20": 1.33, "ago/20": 1.32,
+                "set/20": 1.26, "out/20": 1.29, "nov/20": 1.24, "dez/20": 1.24, "jan/21": 1.26, "fev/21": 1.26,
+                "mar/21": 1.27, "abr/21": 1.3, "mai/21": 1.28, "jun/21": 1.26, "jul/21": 1.29, "ago/21": 1.3,
+                "set/21": 1.31, "out/21": 1.38, "nov/21": 1.42, "dez/21": 1.47, "jan/22": 1.55, "fev/22": 1.56,
+                "mar/22": 1.57, "abr/22": 1.59, "mai/22": 1.61, "jun/22": 1.7, "jul/22": 1.74, "ago/22": 1.73,
+                "set/22": 1.75, "out/22": 1.96, "nov/22": 1.8, "dez/22": 1.85, "jan/23": 1.84, "fev/23": 1.84,
+                "mar/23": 1.86, "abr/23": 1.85, "mai/23": 1.85, "jun/23": 1.88, "jul/23": 1.83, "ago/23": 1.8,
+                "set/23": 1.77, "out/23": 1.76, "nov/23": 1.75, "dez/23": 1.77, "jan/24": 1.76, "fev/24": 1.73,
+                "mar/24": 1.72, "abr/24": 1.72, "mai/24": 1.71, "jun/24": 1.74, "jul/24": 1.73, "ago/24": 1.72,
+                "set/24": 1.73, "out/24": 1.75
+            }
+        };
+
+        // Função para formatar números no padrão brasileiro
+        function formatarNumero(numero) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(numero);
+        }
+
+        function verificarJuros() {
+            if (!validarCampos()) return;
+
+            // Obter valores dos inputs
+            const mesContrato = document.getElementById('mesContrato').value;
+            const anoContrato = document.getElementById('anoContrato').value;
+            const modalidade = document.getElementById('modalidade').value;
+            const taxaJurosMensal = parseFloat(document.getElementById('taxaJurosMensal').value) || 0;
+            const valorPrincipal = parseFloat(document.getElementById('valorPrincipal').value) || 0;
+            const prazoMeses = parseInt(document.getElementById('prazoMeses').value) || 0;
+            const valorParcela = parseFloat(document.getElementById('valorParcela').value) || 0;
+
+            // Obter a taxa média de mercado para a data e modalidade selecionadas
+            const taxaMediaMercadoMensal = obterTaxaMediaMercado(mesContrato, anoContrato, modalidade);
+
+            if (!taxaMediaMercadoMensal) {
+                document.getElementById('result').innerHTML = '<span class="error">Não foi possível encontrar a taxa média de mercado para a data selecionada.</span>';
+                return;
+            }
+
+            // Calcular limite de juros abusivos
+            const limiteAbusivoMensal = taxaMediaMercadoMensal * 1.5;
+
+            // Verificar se a taxa é abusiva
+            let resultado = '';
+            if (taxaJurosMensal > limiteAbusivoMensal) {
+                resultado += `<p>A taxa de juros de ${taxaJurosMensal.toFixed(2)}% ao mês é abusiva.</p>`;
+                document.getElementById('result').classList.add('abusivo');
+            } else {
+                resultado += `<p>A taxa de juros de ${taxaJurosMensal.toFixed(2)}% ao mês não é abusiva.</p>`;
+                document.getElementById('result').classList.add('normal');
+            }
+
+            // Calcular nova parcela com base na taxa média de mercado
+            const novaTaxaMensal = taxaMediaMercadoMensal / 100;
+            const novaParcela = calcularParcela(valorPrincipal, novaTaxaMensal, prazoMeses);
+
+            resultado += `<p>A parcela com base na taxa média de mercado seria ${formatarNumero(novaParcela)}.</p>`;
+
+            // Calcular diferença entre parcelas
+            const diferenca = valorParcela - novaParcela;
+            resultado += `<p>A diferença entre o valor contratado e o valor readequado de cada parcela é ${formatarNumero(diferenca)}.</p>`;
+
+            // Calcular proveito econômico
+            const proveitoEconomico = diferenca * prazoMeses;
+            resultado += `<p>O proveito econômico obtido com a nova taxa ao longo do prazo seria ${formatarNumero(proveitoEconomico)}.</p>`;
+
+            // Exibir resultado
+            document.getElementById('result').innerHTML = resultado;
+            document.getElementById('result').classList.add('show');
+        }
+
+        // Função para calcular a parcela usando a fórmula de juros compostos
+        function calcularParcela(principal, taxa, prazo) {
+            return (principal * taxa * Math.pow(1 + taxa, prazo)) / (Math.pow(1 + taxa, prazo) - 1);
+        }
+
+        // Função para validar os campos
+        function validarCampos() {
+            const mesContrato = document.getElementById('mesContrato').value;
+            const anoContrato = document.getElementById('anoContrato').value;
+            const modalidade = document.getElementById('modalidade').value;
+            const taxaJurosMensal = parseFloat(document.getElementById('taxaJurosMensal').value) || 0;
+            const valorPrincipal = parseFloat(document.getElementById('valorPrincipal').value) || 0;
+            const prazoMeses = parseInt(document.getElementById('prazoMeses').value) || 0;
+            const valorParcela = parseFloat(document.getElementById('valorParcela').value) || 0;
+
+            if (!mesContrato || !anoContrato || !modalidade) {
+                document.getElementById('result').innerHTML = '<span class="error">Por favor, preencha todos os campos.</span>';
+                return false;
+            }
+
+            if (taxaJurosMensal <= 0) {
+                document.getElementById('result').innerHTML = '<span class="error">A taxa de juros deve ser maior que 0.</span>';
+                return false;
+            }
+            if (valorPrincipal <= 0) {
+                document.getElementById('result').innerHTML = '<span class="error">O valor principal deve ser maior que 0.</span>';
+                return false;
+            }
+            if (prazoMeses <= 0) {
+                document.getElementById('result').innerHTML = '<span class="error">O prazo deve ser maior que 0.</span>';
+                return false;
+            }
+            if (valorParcela <= 0) {
+                document.getElementById('result').innerHTML = '<span class="error">O valor da parcela deve ser maior que 0.</span>';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Função para obter a taxa média de mercado com base na data e modalidade
+        function obterTaxaMediaMercado(mes, ano, modalidade) {
+            const mesFormatado = formatarMes(mes);
+            const chave = `${mesFormatado}/${ano.slice(-2)}`;
+            return taxasMercado[modalidade][chave];
+        }
+
+        // Função para formatar o mês para o formato "MMM"
+        function formatarMes(mes) {
+            const meses = {
+                jan: "jan", fev: "fev", mar: "mar", abr: "abr", mai: "mai", jun: "jun",
+                jul: "jul", ago: "ago", set: "set", out: "out", nov: "nov", dez: "dez"
+            };
+            return meses[mes];
+        }
+
+        // Função para limpar o formulário
+        function resetForm() {
+            document.querySelectorAll('input[type="number"], select').forEach(input => input.value = '');
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('result').classList.remove('abusivo', 'normal', 'show');
+        }
+
+        // Função para copiar o resultado completo
+        function copiarResultado() {
+            const mesContrato = document.getElementById('mesContrato').value;
+            const anoContrato = document.getElementById('anoContrato').value;
+            const modalidade = document.getElementById('modalidade').value;
+            const taxaJurosMensal = document.getElementById('taxaJurosMensal').value;
+            const valorPrincipal = document.getElementById('valorPrincipal').value;
+            const prazoMeses = document.getElementById('prazoMeses').value;
+            const valorParcela = document.getElementById('valorParcela').value;
+            const resultado = document.getElementById('result').innerText;
+
+            const resultadoCompleto = `
+Data do Contrato:
+${mesContrato}/${anoContrato}
+Modalidade de Crédito:
+${modalidade}
+Taxa de Juros Mensal (%):
+${taxaJurosMensal}
+Valor Principal (R$):
+${valorPrincipal}
+Prazo (meses):
+${prazoMeses}
+Valor da Parcela Atual (R$):
+${valorParcela}
+
+${resultado}
+            `;
+
+            navigator.clipboard.writeText(resultadoCompleto).then(() => {
+                alert('Resultado completo copiado para a área de transferência!');
+            }).catch(() => {
+                alert('Erro ao copiar o resultado.');
+            });
+        }
+    </script>
+</body>
+</html>
